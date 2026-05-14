@@ -28,6 +28,7 @@ app.get('/', (req, res) => {
   res.status(200).json({
     success: true,
     message: 'Jewelry Shop API is running',
+    service: 'jewelry-shop-backend',
     health: '/api/health'
   });
 });
@@ -58,6 +59,14 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/products', require('./routes/product'));
 app.use('/api/orders', require('./routes/order'));
 app.use('/api/orders/:orderId/payments', require('./routes/payment'));
+
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: `Route not found: ${req.method} ${req.originalUrl}`,
+    availableRoutes: ['/', '/api/health', '/api/auth', '/api/products', '/api/orders']
+  });
+});
 
 app.use((err, req, res, next) => {
   console.error(err);
