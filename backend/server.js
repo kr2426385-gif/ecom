@@ -24,6 +24,18 @@ app.use(cors({
 }));
 app.use(express.json());
 
+app.get('/', (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'Jewelry Shop API is running',
+    health: '/api/health'
+  });
+});
+
+app.get('/favicon.ico', (req, res) => {
+  res.status(204).end();
+});
+
 app.get('/api/health', async (req, res) => {
   try {
     await connectDB();
