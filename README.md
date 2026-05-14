@@ -31,7 +31,7 @@ For local development, the frontend defaults to `http://localhost:5000` for API 
 
 ## Backend Environment Variables
 
-Set these in `backend/.env` locally and in the backend Vercel project:
+Set these in `backend/.env` locally and in Render:
 
 ```env
 MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.mongodb.net/<dbname>?retryWrites=true&w=majority
@@ -40,35 +40,44 @@ FRONTEND_URL=https://your-frontend-domain.vercel.app
 NODE_ENV=production
 ```
 
-During the first backend deployment, you can temporarily set `FRONTEND_URL=http://localhost:3000`. After frontend deployment, update it to the real frontend Vercel URL and redeploy the backend.
+Render automatically provides `PORT`, so do not hardcode it in production.
 
 ## Frontend Environment Variables
 
 Set this in the frontend Vercel project:
 
 ```env
-REACT_APP_API_URL=https://your-backend-domain.vercel.app
+REACT_APP_API_URL=https://your-render-backend.onrender.com
 ```
 
 React reads this at build time, so redeploy the frontend after changing it.
 
-## Deploy Backend First On Vercel
+## Deploy Backend On Render
+
+Recommended manual setup:
 
 1. Push the repository to GitHub.
-2. In Vercel, create a new project and select this repo.
-3. Set the project root directory to `backend`.
-4. Keep the framework preset as `Other`.
-5. Add backend environment variables:
+2. In Render, create a new **Web Service** from this repo.
+3. Set:
+   - Root Directory: `backend`
+   - Runtime: `Node`
+   - Build Command: `npm install`
+   - Start Command: `npm start`
+   - Health Check Path: `/api/health`
+4. Add environment variables:
    - `MONGODB_URI`
    - `JWT_SECRET`
    - `FRONTEND_URL`
    - `NODE_ENV=production`
-6. Deploy.
-7. Test the health endpoint:
+5. Deploy.
+6. Test:
 
 ```text
-https://your-backend-domain.vercel.app/api/health
+https://your-render-backend.onrender.com/
+https://your-render-backend.onrender.com/api/health
 ```
+
+This repo also includes `render.yaml`, so you can use Render Blueprints if you prefer infrastructure-as-code.
 
 Optional seed step after backend deploy:
 
@@ -77,22 +86,24 @@ cd backend
 npm run seed
 ```
 
-Run this locally with the same `MONGODB_URI` if you want starter products in MongoDB before deploying the frontend.
+Run this locally with the same `MONGODB_URI` if you want starter products in MongoDB.
 
-## Deploy Frontend Second On Vercel
+## Deploy Frontend On Vercel
 
-1. Create another Vercel project from the same repo.
-2. Set the project root directory to `frontend`.
-3. Use Create React App defaults:
-   - Build command: `npm run build`
-   - Output directory: `build`
-4. Add `REACT_APP_API_URL` with your backend Vercel URL.
+1. Create a Vercel project from the same repo.
+2. Set Root Directory to `frontend`.
+3. Use Create React App settings:
+   - Build Command: `npm run build`
+   - Output Directory: `build`
+4. Add:
+   - `REACT_APP_API_URL=https://your-render-backend.onrender.com`
 5. Deploy.
 6. Copy the frontend Vercel URL.
-7. Go back to the backend Vercel project, update `FRONTEND_URL` to the frontend URL, then redeploy backend.
+7. Update Render backend `FRONTEND_URL` to the frontend URL, then redeploy the backend.
 
 ## Useful API Endpoints
 
+- `GET /`
 - `GET /api/health`
 - `POST /api/auth/register`
 - `POST /api/auth/login`
