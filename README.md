@@ -1,151 +1,103 @@
-# Jewelry Shop E-Commerce Website
+# Jewelry Shop E-Commerce
 
-A full-stack e-commerce website for a jewelry shop built with React (Frontend) and Node.js/Express (Backend) with MongoDB database.
+Full-stack jewelry shop app with:
 
-## Project Structure
+- React frontend in `frontend/`
+- Express API in `backend/`
+- MongoDB Atlas through Mongoose
+- JWT authentication
+- Product, cart, favorites, order, and payment API routes
 
-```
-ecommercr/
-├── backend/
-│   ├── models/
-│   │   └── User.js           # MongoDB User schema
-│   ├── routes/
-│   │   └── auth.js          # Authentication routes
-│   ├── controllers/
-│   │   └── authController.js # Authentication logic
-│   ├── middleware/
-│   │   └── auth.js          # JWT authentication middleware
-│   ├── server.js            # Express server
-│   ├── package.json
-│   └── .env                 # Environment variables
-│
-└── frontend/
-    ├── src/
-    │   ├── components/
-    │   │   └── ProtectedRoute.js  # Protected route component
-    │   ├── context/
-    │   │   └── AuthContext.js      # Auth context & hooks
-    │   ├── pages/
-    │   │   ├── Home.js            # Home page
-    │   │   ├── Login.js           # Login page
-    │   │   ├── Register.js        # Register page
-    │   │   ├── Dashboard.js       # User dashboard
-    │   │   └── *.css              # Styling
-    │   ├── App.js
-    │   ├── index.js
-    │   └── index.css
-    ├── public/
-    │   └── index.html
-    └── package.json
-```
+## Local Setup
 
-## Features
+Backend:
 
-- ✅ User Registration with validation
-- ✅ User Login with JWT authentication
-- ✅ Protected routes (Dashboard)
-- ✅ MongoDB integration
-- ✅ Secure password hashing with bcryptjs
-- ✅ Responsive UI design
-- ✅ Context API for state management
-
-## Backend Setup
-
-### Prerequisites
-- Node.js installed
-- MongoDB Atlas account (connection string provided)
-
-### Installation
-
-1. Navigate to backend directory:
 ```bash
 cd backend
-```
-
-2. Install dependencies:
-```bash
+copy .env.example .env
 npm install
+npm run dev
 ```
 
-3. Create `.env` file with your MongoDB connection string (already provided)
+Frontend:
 
-4. Start the server:
-```bash
-npm start
-```
-
-The backend will run on `http://localhost:5000`
-
-### API Endpoints
-
-- `POST /api/auth/register` - Register new user
-- `POST /api/auth/login` - Login user
-- `GET /api/auth/me` - Get current user (Protected)
-
-## Frontend Setup
-
-### Prerequisites
-- Node.js installed
-- Backend running on port 5000
-
-### Installation
-
-1. Navigate to frontend directory:
 ```bash
 cd frontend
-```
-
-2. Install dependencies:
-```bash
 npm install
-```
-
-3. Start the development server:
-```bash
 npm start
 ```
 
-The frontend will run on `http://localhost:3000`
+For local development, the frontend defaults to `http://localhost:5000` for API requests.
 
-## Usage
+## Backend Environment Variables
 
-1. Visit `http://localhost:3000` in your browser
-2. Click "Get Started" or "Register" to create a new account
-3. Fill in your details and submit
-4. Login with your credentials
-5. Access your dashboard with personalized greeting
+Set these in `backend/.env` locally and in the backend Vercel project:
 
-## MongoDB Connection
+```env
+MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.mongodb.net/<dbname>?retryWrites=true&w=majority
+JWT_SECRET=replace-with-a-long-random-secret
+FRONTEND_URL=https://your-frontend-domain.vercel.app
+NODE_ENV=production
+```
 
-The application is configured to use MongoDB Atlas with the provided connection string. All user data including authentication information is stored in MongoDB.
+During the first backend deployment, you can temporarily set `FRONTEND_URL=http://localhost:3000`. After frontend deployment, update it to the real frontend Vercel URL and redeploy the backend.
 
-## Security Features
+## Frontend Environment Variables
 
-- Passwords are hashed using bcryptjs
-- JWT tokens for session management
-- Protected routes requiring authentication
-- Secure HTTP headers with CORS
-- Input validation on both frontend and backend
+Set this in the frontend Vercel project:
 
-## Technologies Used
+```env
+REACT_APP_API_URL=https://your-backend-domain.vercel.app
+```
 
-### Backend
-- Node.js
-- Express.js
-- MongoDB
-- Mongoose
-- bcryptjs
-- JWT (jsonwebtoken)
+React reads this at build time, so redeploy the frontend after changing it.
 
-### Frontend
-- React 18
-- React Router v6
-- Axios
-- Context API
+## Deploy Backend First On Vercel
 
-## Notes
+1. Push the repository to GitHub.
+2. In Vercel, create a new project and select this repo.
+3. Set the project root directory to `backend`.
+4. Keep the framework preset as `Other`.
+5. Add backend environment variables:
+   - `MONGODB_URI`
+   - `JWT_SECRET`
+   - `FRONTEND_URL`
+   - `NODE_ENV=production`
+6. Deploy.
+7. Test the health endpoint:
 
-- JWT token expires in 30 days
-- Token is stored in localStorage on the frontend
-- Backend runs on port 5000, frontend on port 3000
-- CORS is enabled for local development
+```text
+https://your-backend-domain.vercel.app/api/health
+```
+
+Optional seed step after backend deploy:
+
+```bash
+cd backend
+npm run seed
+```
+
+Run this locally with the same `MONGODB_URI` if you want starter products in MongoDB before deploying the frontend.
+
+## Deploy Frontend Second On Vercel
+
+1. Create another Vercel project from the same repo.
+2. Set the project root directory to `frontend`.
+3. Use Create React App defaults:
+   - Build command: `npm run build`
+   - Output directory: `build`
+4. Add `REACT_APP_API_URL` with your backend Vercel URL.
+5. Deploy.
+6. Copy the frontend Vercel URL.
+7. Go back to the backend Vercel project, update `FRONTEND_URL` to the frontend URL, then redeploy backend.
+
+## Useful API Endpoints
+
+- `GET /api/health`
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `GET /api/auth/me`
+- `GET /api/products`
+- `POST /api/products`
+- `GET /api/orders`
+- `POST /api/orders`

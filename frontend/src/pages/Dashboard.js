@@ -17,22 +17,22 @@ const Dashboard = () => {
     <div className="dashboard-container">
       <nav className="navbar">
         <div className="navbar-brand">
-          <h1>✨ Jewelry Shop</h1>
+          <h1>Jewelry Shop</h1>
         </div>
         <div className="navbar-links">
-          <Link to="/products" className="nav-link">🛍️ Shop</Link>
+          <Link to="/products" className="nav-link">Shop</Link>
           <Link to="/orders" className="nav-link cart-link">
-            🛒 Cart
+            Cart
             {cart.length > 0 && <span className="cart-badge">{cart.length}</span>}
           </Link>
           <Link to="/favorites" className="nav-link favorites-link">
-            ❤️ Favorites
+            Favorites
             {favorites.length > 0 && <span className="favorites-badge">{favorites.length}</span>}
           </Link>
         </div>
         <div className="navbar-user">
           <span>Welcome, {user?.name}!</span>
-          <button onClick={handleLogout} className="logout-btn">Logout</button>
+          <button onClick={handleLogout} className="logout-btn" type="button">Logout</button>
         </div>
       </nav>
 
@@ -44,26 +44,26 @@ const Dashboard = () => {
 
         <div className="dashboard-grid">
           <div className="dashboard-card">
-            <h3>👤 Profile</h3>
+            <h3>Profile</h3>
             <p><strong>Name:</strong> {user?.name}</p>
             <p><strong>Email:</strong> {user?.email}</p>
             <p><strong>Role:</strong> {user?.role}</p>
           </div>
 
           <div className="dashboard-card">
-            <h3>🛍️ Products</h3>
+            <h3>Products</h3>
             <p>Browse our exclusive jewelry collection</p>
             <Link to="/products" className="card-btn">View Products</Link>
           </div>
 
           <div className="dashboard-card">
-            <h3>🛒 Orders & Cart</h3>
+            <h3>Orders & Cart</h3>
             <p>Manage your orders and checkout</p>
             <Link to="/orders" className="card-btn">View Orders</Link>
           </div>
 
           <div className="dashboard-card">
-            <h3>❤️ Favorites</h3>
+            <h3>Favorites</h3>
             <p>Your saved jewelry items</p>
             <Link to="/favorites" className="card-btn">View Favorites</Link>
           </div>

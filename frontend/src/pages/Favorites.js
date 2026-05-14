@@ -16,13 +16,12 @@ const Favorites = () => {
 
   return (
     <div className="favorites-page">
-      <h1>❤️ My Favorites</h1>
+      <h1>My Favorites</h1>
       
       {favorites.length === 0 ? (
         <div className="empty-favorites">
-          <p className="empty-icon">💔</p>
           <p>You haven't added any favorites yet!</p>
-          <p>Browse products and click the ❤️ to add them here.</p>
+          <p>Browse products and click Favorite to add them here.</p>
         </div>
       ) : (
         <>
@@ -43,12 +42,14 @@ const Favorites = () => {
                       <button
                         className="add-to-cart-btn"
                         onClick={() => handleAddToCart(product)}
+                        type="button"
                       >
-                        🛒 Order
+                        Order
                       </button>
                       <button
                         className="remove-favorite-btn"
                         onClick={() => handleRemoveFavorite(product)}
+                        type="button"
                       >
                         Remove
                       </button>

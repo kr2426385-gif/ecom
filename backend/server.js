@@ -1,69 +1,73 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
+const connectDB = require('./config/db');
+
 require('dotenv').config({ path: path.resolve(__dirname, '.env') });
-const dns = require("dns");
 
 const app = express();
 
-dns.setServers(["1.1.1.1", "8.8.8.8"]);
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  'http://localhost:3000'
+].filter(Boolean);
 
-// Middleware
-app.use(cors());
+app.use(cors({
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+      callback(null, true);
+      return;
+    }
+
+    callback(new Error('Not allowed by CORS'));
+  }
+}));
 app.use(express.json());
 
-// Validate MongoDB URI
-const mongoUri = process.env.MONGODB_URI;
-
-if (!mongoUri) {
-  console.error('ERROR: MONGODB_URI is not defined. Please set the MongoDB connection string in backend/.env or as an environment variable.');
-  process.exit(1);
-}
-
-// Connect to MongoDB
-mongoose.connect(mongoUri, {
-  serverSelectionTimeoutMS: 5000,
-  socketTimeoutMS: 45000,
-  maxPoolSize: 10,
-  family: 4
-})
-.then(() => {
-  console.log('MongoDB connected successfully');
-})
-.catch((err) => {
-  console.error('MongoDB connection error:', err.message);
-  console.error('Error code:', err.code);
-  console.error('Error codeName:', err.codeName);
-  process.exit(1);
+app.get('/api/health', async (req, res) => {
+  try {
+    await connectDB();
+    res.status(200).json({ success: true, message: 'Server is running' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
 });
 
-// Routes
+app.use('/api', async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
+
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/products', require('./routes/product'));
 app.use('/api/orders', require('./routes/order'));
 app.use('/api/orders/:orderId/payments', require('./routes/payment'));
 
-// Health check route
-app.get('/api/health', (req, res) => {
-  res.status(200).json({ message: 'Server is running' });
-});
-
-// Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  console.error(err);
   res.status(500).json({
     success: false,
-    message: 'Server error'
+    message: err.message || 'Server error'
   });
 });
 
 const PORT = process.env.PORT || 5000;
 
 if (require.main === module) {
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-  });
+  connectDB()
+    .then(() => {
+      app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+      });
+    })
+    .catch((error) => {
+      console.error('MongoDB connection error:', error.message);
+      process.exit(1);
+    });
 }
 
 module.exports = app;

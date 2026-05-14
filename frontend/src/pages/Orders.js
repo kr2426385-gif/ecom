@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { CartContext } from '../context/CartContext';
+import { apiUrl } from '../config/api';
 import './Orders.css';
 
 const Orders = () => {
@@ -27,25 +28,21 @@ const Orders = () => {
   const fetchOrders = async () => {
     try {
       const token = localStorage.getItem('token');
-      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-      const response = await fetch(`${apiUrl}/api/orders`, {
+      const response = await fetch(apiUrl('/api/orders'), {
         headers: {
-          'Authorization': `Bearer ${token}`
+          Authorization: `Bearer ${token}`
         }
       });
       const data = await response.json();
 
-      if (data.success) {
-        setPlacedOrders(data.data);
-      } else {
-        setError('Failed to fetch orders');
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || 'Failed to fetch orders');
       }
+
+      setPlacedOrders(data.data);
+      setError('');
     } catch (err) {
-      // If backend fails, just load from localStorage
-      const savedOrders = localStorage.getItem('placedOrders');
-      if (savedOrders) {
-        setPlacedOrders(JSON.parse(savedOrders));
-      }
+      setError(err.message || 'Failed to fetch orders');
     } finally {
       setLoading(false);
     }
@@ -66,37 +63,42 @@ const Orders = () => {
     }
 
     if (!shippingAddress.street || !shippingAddress.city || !shippingAddress.zipCode) {
-      alert('Please fill in all address fields!');
+      alert('Please fill in street, city, and zip code.');
       return;
     }
 
-    // Create order object
-    const newOrder = {
-      _id: Date.now().toString(),
-      user: user?.id || 'guest',
-      products: cart.map(item => ({
-        product: item,
-        quantity: item.quantity,
-        price: item.price
-      })),
-      total: getTotalPrice(),
-      status: 'pending',
-      shippingAddress: shippingAddress,
-      createdAt: new Date().toISOString()
-    };
+    const token = localStorage.getItem('token');
 
-    // Save to localStorage
-    const savedOrders = localStorage.getItem('placedOrders');
-    const orders = savedOrders ? JSON.parse(savedOrders) : [];
-    orders.push(newOrder);
-    localStorage.setItem('placedOrders', JSON.stringify(orders));
+    try {
+      const response = await fetch(apiUrl('/api/orders'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          products: cart.map(item => ({
+            product: item._id,
+            quantity: item.quantity
+          })),
+          shippingAddress
+        })
+      });
+      const data = await response.json();
 
-    // Update state
-    setPlacedOrders(orders);
-    clearCart();
-    setShippingAddress({ street: '', city: '', state: '', zipCode: '', country: '' });
-    setShowOrderForm(false);
-    alert('Order placed successfully!');
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || 'Order could not be placed');
+      }
+
+      setPlacedOrders(prev => [data.data, ...prev]);
+      clearCart();
+      setShippingAddress({ street: '', city: '', state: '', zipCode: '', country: '' });
+      setShowOrderForm(false);
+      setError('');
+      alert('Order placed successfully!');
+    } catch (err) {
+      setError(err.message || 'Order could not be placed. Please try again.');
+    }
   };
 
   const getStatusColor = (status) => {
@@ -115,9 +117,9 @@ const Orders = () => {
 
   return (
     <div className="orders">
-      <h1>🛒 My Orders & Cart</h1>
+      <h1>My Orders & Cart</h1>
+      {error && <div className="error">{error}</div>}
 
-      {/* Cart Section */}
       <div className="cart-section">
         <h2>Shopping Cart</h2>
         {cart.length === 0 ? (
@@ -146,12 +148,12 @@ const Orders = () => {
               <button
                 className="place-order-btn"
                 onClick={() => setShowOrderForm(true)}
+                type="button"
               >
                 Place Order
               </button>
             </div>
 
-            {/* Order Form Modal */}
             {showOrderForm && (
               <div className="order-form-overlay">
                 <div className="order-form">
@@ -195,12 +197,14 @@ const Orders = () => {
                     <button
                       className="confirm-order-btn"
                       onClick={handlePlaceOrder}
+                      type="button"
                     >
                       Confirm Order
                     </button>
                     <button
                       className="cancel-btn"
                       onClick={() => setShowOrderForm(false)}
+                      type="button"
                     >
                       Cancel
                     </button>
@@ -212,7 +216,6 @@ const Orders = () => {
         )}
       </div>
 
-      {/* Placed Orders Section */}
       <div className="orders-section">
         <h2>Order History</h2>
         {placedOrders.length === 0 ? (
@@ -246,7 +249,7 @@ const Orders = () => {
                   <h4>Products:</h4>
                   {order.products.map((item, index) => (
                     <div key={index} className="order-product">
-                      <span>{item.product.name}</span>
+                      <span>{item.product?.name || 'Product'}</span>
                       <span>Qty: {item.quantity}</span>
                       <span>${(item.price * item.quantity).toFixed(2)}</span>
                     </div>

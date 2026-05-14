@@ -7,7 +7,7 @@ const Home = () => {
     <div className="home-container">
       <nav className="top-navbar">
         <div className="navbar-brand">
-          <h1>✨ Jewelry Shop</h1>
+          <h1>Jewelry Shop</h1>
         </div>
         <div className="navbar-links">
           <Link to="/login">Login</Link>
@@ -18,7 +18,7 @@ const Home = () => {
       <section className="hero">
         <div className="hero-content">
           <h1>Welcome to Our Jewelry Shop</h1>
-          <p>Discover exquisite jewelry pieces crafted with precision and love</p>
+          <p>Discover exquisite jewelry pieces crafted with precision and care</p>
           <div className="cta-buttons">
             <Link to="/register" className="btn btn-primary">Get Started</Link>
             <Link to="/login" className="btn btn-secondary">Login</Link>
@@ -28,25 +28,25 @@ const Home = () => {
 
       <section className="features">
         <div className="feature-card">
-          <h3>💎 Premium Quality</h3>
+          <h3>Premium Quality</h3>
           <p>Only the finest materials and craftsmanship</p>
         </div>
         <div className="feature-card">
-          <h3>🚚 Fast Delivery</h3>
+          <h3>Fast Delivery</h3>
           <p>Quick and secure delivery to your doorstep</p>
         </div>
         <div className="feature-card">
-          <h3>💳 Secure Payment</h3>
+          <h3>Secure Payment</h3>
           <p>Safe and encrypted payment processing</p>
         </div>
         <div className="feature-card">
-          <h3>❤️ Best Prices</h3>
+          <h3>Best Prices</h3>
           <p>Competitive prices with regular discounts</p>
         </div>
       </section>
 
       <footer className="footer">
-        <p>&copy; 2024 Jewelry Shop. All rights reserved.</p>
+        <p>&copy; 2026 Jewelry Shop. All rights reserved.</p>
       </footer>
     </div>
   );

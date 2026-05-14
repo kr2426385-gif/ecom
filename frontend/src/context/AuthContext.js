@@ -1,14 +1,5 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
-import axios from 'axios';
-
-const apiUrl = process.env.REACT_APP_API_URL || (process.env.NODE_ENV === 'development' ? 'http://localhost:5000' : window.location.origin);
-const api = axios.create({
-  baseURL: apiUrl
-});
-
-if (!process.env.REACT_APP_API_URL && process.env.NODE_ENV === 'production') {
-  console.warn('REACT_APP_API_URL is not configured in production. Falling back to window.location.origin for API requests.');
-}
+import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
+import { apiUrl } from '../config/api';
 
 const AuthContext = createContext();
 
@@ -17,19 +8,20 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState(localStorage.getItem('token'));
 
-  useEffect(() => {
-    if (token) {
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      fetchUser();
-    } else {
-      setLoading(false);
-    }
-  }, [token]);
-
-  const fetchUser = async () => {
+  const fetchUser = useCallback(async () => {
     try {
-      const response = await api.get('/api/auth/me');
-      setUser(response.data.user);
+      const response = await fetch(apiUrl('/api/auth/me'), {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || 'Unable to fetch user');
+      }
+
+      setUser(data.user);
     } catch (error) {
       console.error('Error fetching user:', error);
       localStorage.removeItem('token');
@@ -37,41 +29,69 @@ export const AuthProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    if (token) {
+      fetchUser();
+    } else {
+      setLoading(false);
+    }
+  }, [token, fetchUser]);
 
   const register = async (name, email, password, confirmPassword) => {
     try {
-      const response = await api.post('/api/auth/register', {
-        name,
-        email,
-        password,
-        confirmPassword
+      const response = await fetch(apiUrl('/api/auth/register'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name,
+          email,
+          password,
+          confirmPassword
+        })
       });
-      const { token, user } = response.data;
-      localStorage.setItem('token', token);
-      setToken(token);
-      setUser(user);
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      return response.data;
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || 'Registration failed');
+      }
+
+      localStorage.setItem('token', data.token);
+      setToken(data.token);
+      setUser(data.user);
+      return data;
     } catch (error) {
-      throw error.response?.data?.message || 'Registration failed';
+      throw error.message || 'Registration failed';
     }
   };
 
   const login = async (email, password) => {
     try {
-      const response = await api.post('/api/auth/login', {
-        email,
-        password
+      const response = await fetch(apiUrl('/api/auth/login'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          email,
+          password
+        })
       });
-      const { token, user } = response.data;
-      localStorage.setItem('token', token);
-      setToken(token);
-      setUser(user);
-      api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      return response.data;
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || 'Login failed');
+      }
+
+      localStorage.setItem('token', data.token);
+      setToken(data.token);
+      setUser(data.user);
+      return data;
     } catch (error) {
-      throw error.response?.data?.message || 'Login failed';
+      throw error.message || 'Login failed';
     }
   };
 
@@ -79,7 +99,6 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('token');
     setToken(null);
     setUser(null);
-    delete api.defaults.headers.common['Authorization'];
   };
 
   return (
