@@ -47,10 +47,10 @@ Render automatically provides `PORT`, so do not hardcode it in production.
 Set this in the frontend Vercel project:
 
 ```env
-REACT_APP_API_URL=https://your-render-backend.onrender.com
+REACT_APP_API_URL=https://ecom-l4hg.onrender.com
 ```
 
-React reads this at build time, so redeploy the frontend after changing it.
+The frontend also falls back to `https://ecom-l4hg.onrender.com` in production if this variable is not set. React reads environment variables at build time, so redeploy the frontend after changing them.
 
 ## Deploy Backend On Render
 
@@ -96,7 +96,7 @@ Run this locally with the same `MONGODB_URI` if you want starter products in Mon
    - Build Command: `npm run build`
    - Output Directory: `build`
 4. Add:
-   - `REACT_APP_API_URL=https://your-render-backend.onrender.com`
+   - `REACT_APP_API_URL=https://ecom-l4hg.onrender.com`
 5. Deploy.
 6. Copy the frontend Vercel URL.
 7. Update Render backend `FRONTEND_URL` to the frontend URL, then redeploy the backend.
