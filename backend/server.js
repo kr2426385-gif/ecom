@@ -1,7 +1,8 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 const dns = require("dns");
 
 const app = express();
@@ -12,8 +13,16 @@ dns.setServers(["1.1.1.1", "8.8.8.8"]);
 app.use(cors());
 app.use(express.json());
 
+// Validate MongoDB URI
+const mongoUri = process.env.MONGODB_URI;
+
+if (!mongoUri) {
+  console.error('ERROR: MONGODB_URI is not defined. Please set the MongoDB connection string in backend/.env or as an environment variable.');
+  process.exit(1);
+}
+
 // Connect to MongoDB
-mongoose.connect(process.env.MONGODB_URI, {
+mongoose.connect(mongoUri, {
   serverSelectionTimeoutMS: 5000,
   socketTimeoutMS: 45000,
   maxPoolSize: 10,
@@ -26,6 +35,7 @@ mongoose.connect(process.env.MONGODB_URI, {
   console.error('MongoDB connection error:', err.message);
   console.error('Error code:', err.code);
   console.error('Error codeName:', err.codeName);
+  process.exit(1);
 });
 
 // Routes
@@ -50,6 +60,10 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
+
+module.exports = app;
