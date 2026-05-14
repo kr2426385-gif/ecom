@@ -7,21 +7,42 @@ require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 
 const app = express();
 
-const allowedOrigins = [
+const configuredOrigins = [
   process.env.FRONTEND_URL,
+  process.env.FRONTEND_URLS,
   'http://localhost:3000'
-].filter(Boolean);
+]
+  .filter(Boolean)
+  .flatMap(origin => origin.split(','))
+  .map(origin => origin.trim().replace(/\/$/, ''))
+  .filter(Boolean);
 
-app.use(cors({
+const isAllowedOrigin = (origin) => {
+  if (!origin) {
+    return true;
+  }
+
+  if (configuredOrigins.includes(origin)) {
+    return true;
+  }
+
+  return /^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin);
+};
+
+const corsOptions = {
   origin(origin, callback) {
-    if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+    if (isAllowedOrigin(origin)) {
       callback(null, true);
       return;
     }
 
     callback(new Error('Not allowed by CORS'));
-  }
-}));
+  },
+  credentials: true
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(express.json());
 
 app.get('/', (req, res) => {
